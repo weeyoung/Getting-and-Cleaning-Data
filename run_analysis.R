@@ -22,28 +22,32 @@ x_merged <- rbind(x_train,x_test)
 y_merged <- rbind(y_train, y_test)
 subject_merged <- rbind(subject_train, subject_test)
 
-colnames(subject_merged)<-"SubjectID"
-colnames(y_merged)<-"ActivityID"
-xColumnNames<-tolower(gsub("\\(|\\)", "", features[[2]]))
-colnames(x_merged)<-xColumnNames
-merged<-cbind(cbind(subject_merged, y_merged), x_merged)
+colnames(subject_merged) <- "SubjectID"
+colnames(y_merged) <- "ActivityID"
+featureColumnNames <- gsub("\\(|\\)", "", features[[2]])
+featureColumnNames <- tolower(featureColumnNames)
+colnames(x_merged) <- featureColumnNames
+merged <- cbind(cbind(subject_merged, y_merged), x_merged)
 
 #2. Extracts only the measurements on the mean and standard deviation for each measurement. 
-mean_std<-c(grep("mean",xColumnNames,value = TRUE),grep("std",xColumnNames,value = TRUE))
-data<-merged[c(c("SubjectID","ActivityID"), mean_std)]
+fmean <- grep("mean",featureColumnNames,value = TRUE)
+fstd <- grep("std",featureColumnNames,value = TRUE)
+mean_std <- c(fmean,fstd)
+subject_activity <- c("SubjectID","ActivityID")
+data <- merged[c(subject_activity, mean_std)]
 
 #3.Uses descriptive activity names to name the activities in the data set
-colnames(activity_labels)<-c("ActivityID", "Activity")
+colnames(activity_labels) <- c("ActivityID", "Activity")
 
-activity_labels$Activity<-gsub(pattern = "_", replacement = " ",x = activity_labels$Activity)
-activity_labels$Activity<-tolower(activity_labels$Activity)
+activity_labels$Activity <- gsub(pattern = "_", replacement = " ",x = activity_labels$Activity)
+activity_labels$Activity <- tolower(activity_labels$Activity)
 
 #4.Appropriately labels the data set with descriptive variable names. 
-cleanData<-merge(x = data,y = activity_labels, by = "ActivityID")
+cleanData <- merge(x = data,y = activity_labels, by = "ActivityID")
 cleanData <- cleanData[,!(names(cleanData) %in% c("ActivityID"))]
 
 #5 From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
-averageData<-aggregate(cleanData[mean_std],
+averageData <- aggregate(cleanData[mean_std],
           by=list(SubjectID=cleanData$SubjectID,Activity=cleanData$Activity),
           FUN=mean)
 averageData <- averageData[order(averageData$SubjectID,averageData$Activity),]
